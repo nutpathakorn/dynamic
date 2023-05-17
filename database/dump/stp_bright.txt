@@ -1,0 +1,1212 @@
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_check_companies_user_id`(IN p_company_user_cid VARCHAR(255),IN p_company_owner_id VARCHAR(255))
+BEGIN
+    SELECT id, company_user_cid as cus_id, company_user_name as cus_name
+	FROM db_bright.tb_companies_user
+	WHERE company_user_cid LIKE CONCAT('%', p_company_user_cid, '%') AND company_owner_id = p_company_owner_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_check_user_login_details`(IN p_user_id INT)
+BEGIN
+	SELECT c.*, p.name_in_thai FROM db_bright.tb_companies c
+    INNER JOIN db_bright.provinces p ON c.company_prov = p.id
+    WHERE user_id = p_user_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_companies_user_ins`(
+IN company_owner_id VARCHAR(255),
+IN company_user_cid VARCHAR(255),
+IN company_user_name VARCHAR(255),
+
+IN company_addr1_name VARCHAR(255),
+IN company_addr1_addr VARCHAR(255),
+IN company_addr1_province_id VARCHAR(255),
+IN company_addr1_province VARCHAR(255),
+IN company_addr1_district_id VARCHAR(255),
+IN company_addr1_district VARCHAR(255),
+IN company_addr1_subdistrict_id VARCHAR(255),
+IN company_addr1_subdistrict VARCHAR(255),
+IN company_addr1_post VARCHAR(255),
+IN company_addr1_condition VARCHAR(255),
+
+IN company_addr2_name VARCHAR(255),
+IN company_addr2_addr VARCHAR(255),
+IN company_addr2_province_id VARCHAR(255),
+IN company_addr2_province VARCHAR(255),
+IN company_addr2_district_id VARCHAR(255),
+IN company_addr2_district VARCHAR(255),
+IN company_addr2_subdistrict_id VARCHAR(255),
+IN company_addr2_subdistrict VARCHAR(255),
+IN company_addr2_post VARCHAR(255),
+IN company_addr2_condition VARCHAR(255)
+)
+BEGIN
+	DECLARE msg VARCHAR(255);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+		INSERT INTO `db_bright`.`tb_companies_user`
+		(`company_owner_id`,
+		`company_user_cid`,
+		`company_user_name`,
+		`created_at`)
+		VALUES
+		(company_owner_id,
+		company_user_cid,
+		company_user_name,
+		current_timestamp());
+        
+        IF ROW_COUNT() = 1 THEN
+			SET msg = 'ok';
+			COMMIT;
+		ELSE
+			ROLLBACK;
+		END IF;
+
+		INSERT INTO `db_bright`.`tb_companies_addr1`
+		(`company_owner_id`,
+        `company_user_id`,
+		`company_addr1_name`,
+		`company_addr1_addr`,
+		`company_addr1_province_id`,
+		`company_addr1_province`,
+		`company_addr1_district_id`,
+		`company_addr1_district`,
+		`company_addr1_subdistrict_id`,
+		`company_addr1_subdistrict`,
+		`company_addr1_post`,
+		`company_addr1_condition`,
+		`created_at`)
+		VALUES
+		(company_owner_id,
+        company_user_cid,
+		company_addr1_name,
+		company_addr1_addr,
+		company_addr1_province_id,
+		company_addr1_province,
+		company_addr1_district_id,
+		company_addr1_district,
+		company_addr1_subdistrict_id,
+		company_addr1_subdistrict,
+		company_addr1_post,
+		company_addr1_condition,
+		current_timestamp());
+
+		INSERT INTO `db_bright`.`tb_companies_addr2`
+		(`company_owner_id`,
+        `company_user_id`,
+		`company_addr2_name`,
+		`company_addr2_addr`,
+		`company_addr2_province_id`,
+		`company_addr2_province`,
+		`company_addr2_district_id`,
+		`company_addr2_district`,
+		`company_addr2_subdistrict_id`,
+		`company_addr2_subdistrict`,
+		`company_addr2_post`,
+		`company_addr2_condition`,
+		`created_at`)
+		VALUES
+		(company_owner_id,
+        company_user_cid,
+		company_addr2_name,
+		company_addr2_addr,
+		company_addr2_province_id,
+		company_addr2_province,
+		company_addr2_district_id,
+		company_addr2_district,
+		company_addr2_subdistrict_id,
+		company_addr2_subdistrict,
+		company_addr2_post,
+		company_addr2_condition,
+		current_timestamp());
+        
+        SELECT msg;
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_companies_user_update`(
+IN company_owner_id VARCHAR(255),
+IN company_user_cid VARCHAR(255),
+IN company_user_name VARCHAR(255),
+
+IN company_addr1_name VARCHAR(255),
+IN company_addr1_addr VARCHAR(255),
+IN company_addr1_province_id VARCHAR(255),
+IN company_addr1_province VARCHAR(255),
+IN company_addr1_district_id VARCHAR(255),
+IN company_addr1_district VARCHAR(255),
+IN company_addr1_subdistrict_id VARCHAR(255),
+IN company_addr1_subdistrict VARCHAR(255),
+IN company_addr1_post VARCHAR(255),
+IN company_addr1_condition VARCHAR(255),
+
+IN company_addr2_name VARCHAR(255),
+IN company_addr2_addr VARCHAR(255),
+IN company_addr2_province_id VARCHAR(255),
+IN company_addr2_province VARCHAR(255),
+IN company_addr2_district_id VARCHAR(255),
+IN company_addr2_district VARCHAR(255),
+IN company_addr2_subdistrict_id VARCHAR(255),
+IN company_addr2_subdistrict VARCHAR(255),
+IN company_addr2_post VARCHAR(255),
+IN company_addr2_condition VARCHAR(255)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT "bafore update failed" as msg;
+    END;
+
+    START TRANSACTION;
+        UPDATE `db_bright`.`tb_companies_user`
+        SET
+            `company_user_name` = company_user_name,
+            `updated_at` = current_timestamp()
+        WHERE
+            `company_owner_id` = company_owner_id AND
+            `company_user_cid` = company_user_cid;
+
+        IF ROW_COUNT() = 0 THEN
+            ROLLBACK;
+            SELECT "update tb1 failed" as msg;
+        ELSE
+            UPDATE `db_bright`.`tb_companies_addr1`
+            SET
+                `company_addr1_name` = company_addr1_name,
+                `company_addr1_addr` = company_addr1_addr,
+                `company_addr1_province_id` = company_addr1_province_id,
+                `company_addr1_province` = company_addr1_province,
+                `company_addr1_district_id` = company_addr1_district_id,
+                `company_addr1_district` = company_addr1_district,
+                `company_addr1_subdistrict_id` = company_addr1_subdistrict_id,
+                `company_addr1_subdistrict` = company_addr1_subdistrict,
+                `company_addr1_post` = company_addr1_post,
+                `company_addr1_condition` = company_addr1_condition,
+                `updated_at` = current_timestamp()
+            WHERE
+                `company_user_id` = company_user_cid;
+
+            UPDATE `db_bright`.`tb_companies_addr2`
+            SET
+                `company_addr2_name` = company_addr2_name,
+                `company_addr2_addr` = company_addr2_addr,
+                `company_addr2_province_id` = company_addr2_province_id,
+                `company_addr2_province` = company_addr2_province,
+                `company_addr2_district_id` = company_addr2_district_id,
+                `company_addr2_district` = company_addr2_district,
+                `company_addr2_subdistrict_id` = company_addr2_subdistrict_id,
+                `company_addr2_subdistrict` = company_addr2_subdistrict,
+                `company_addr2_post` = company_addr2_post,
+                `company_addr2_condition` = company_addr2_condition,
+                `updated_at` = current_timestamp()
+            WHERE
+                `company_user_id` = company_user_cid;
+
+            IF ROW_COUNT() = 0 THEN
+                ROLLBACK;
+                SELECT "update child failed"  as msg;
+            ELSE
+                COMMIT;
+                SELECT "ok"  as msg;
+            END IF;
+        END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_delete_companies_user`(IN p_company_owner_id VARCHAR(100), IN p_company_user_cid VARCHAR(100))
+BEGIN
+	DELETE FROM `db_bright`.`tb_companies_user`
+	WHERE company_user_cid = p_company_user_cid AND company_owner_id = p_company_owner_id;
+    
+    DELETE FROM `db_bright`.`tb_companies_addr1`
+	WHERE company_user_id = p_company_user_cid AND company_owner_id = p_company_owner_id;
+    
+    DELETE FROM `db_bright`.`tb_companies_addr2`
+	WHERE company_user_id = p_company_user_cid AND company_owner_id = p_company_owner_id;
+    
+    SELECT "ok" as msg;
+    
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_delete_master_basket`(IN p_id INT)
+BEGIN
+	DELETE FROM `db_bright`.`master_basket`
+	WHERE id = p_id;
+    
+    DELETE FROM `db_bright`.`master_basket_staff`
+	WHERE basket_id = p_id;
+    
+    SELECT "ok" as msg;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_delete_master_basket_staff`(IN p_basket_id INT, IN p_basket_group_id INT)
+BEGIN
+	DELETE FROM `db_bright`.`master_basket_staff`
+	WHERE basket_id = p_basket_id AND basket_group_id = p_basket_group_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_edit_companies_user_id`(IN p_company_owner_id INT, IN p_company_user_cid INT)
+BEGIN
+
+	SELECT 
+		tb1.*, 
+        tb2.*, 
+        tb3.*
+	FROM 
+		db_bright.tb_companies_user AS tb1
+		JOIN db_bright.tb_companies_addr1 AS tb2 ON tb1.company_user_cid = tb2.company_user_id AND tb2.company_owner_id = p_company_owner_id
+		JOIN db_bright.tb_companies_addr2 AS tb3 ON tb1.company_user_cid = tb3.company_user_id AND tb3.company_owner_id = p_company_owner_id
+		WHERE tb1.company_owner_id = p_company_owner_id AND tb1.company_user_cid = p_company_user_cid;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_job_master_ins`(
+	IN p_company_owner_id VARCHAR(255),
+	IN p_company_user_cid INT,
+    IN cus_name VARCHAR(255),
+    IN cus_address VARCHAR(255),
+    IN job_type_id VARCHAR(255),
+    IN job_type_name VARCHAR(255),
+	IN cus_recive_name VARCHAR(255),
+	IN cus_recive_phone VARCHAR(255),
+	IN cus_recive_mobile VARCHAR(255),
+	IN cus_addr_lat VARCHAR(255),
+	IN cus_addr_long VARCHAR(255),
+    IN cus_addr_sub_district_id INT,
+	IN cus_addr_sub_district VARCHAR(255),
+    IN cus_addr_district_id INT,
+	IN cus_addr_district VARCHAR(255),
+    IN cus_addr_province_id INT,
+	IN cus_addr_province VARCHAR(255),
+	IN cus_addr_sub_post VARCHAR(255),
+	IN shipping_price VARCHAR(255),
+	IN shipping_details_docs VARCHAR(255),
+	IN shipping_details_condition VARCHAR(255),
+	IN shipping_condition VARCHAR(255),
+	IN job_start_date VARCHAR(255),
+	IN create_by VARCHAR(255),
+    IN job_time_preriod INT,
+    IN p_basket_id VARCHAR(45),
+    IN p_basket_name VARCHAR(45),
+    IN p_staff_id VARCHAR(45),
+    IN p_staff_name VARCHAR(45)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+    SET @existing_id = (SELECT company_user_cid FROM db_bright.tb_companies_user WHERE company_owner_id = p_company_owner_id AND company_user_cid = p_company_user_cid);
+	IF @existing_id IS NULL THEN
+		CALL `db_bright`.`stp_companies_user_ins`(
+			p_company_owner_id, 
+			p_company_user_cid, 
+			cus_name, 
+			cus_name, 
+			cus_address, 
+			cus_addr_province_id, 
+			cus_addr_province, 
+			cus_addr_district_id,
+			cus_addr_district, 
+			cus_addr_sub_district_id, 
+			cus_addr_sub_district, 
+			cus_addr_sub_post, 
+			shipping_condition,
+			cus_name, 
+			cus_address, 
+			cus_addr_province_id,
+			cus_addr_province, 
+			cus_addr_district_id, 
+			cus_addr_district, 
+			cus_addr_sub_district_id, 
+			cus_addr_sub_district, 
+			cus_addr_sub_post, 
+			shipping_condition
+		);
+	END IF;
+    
+    INSERT INTO `ms_job_master`
+		(`company_owner_id`,
+        `company_user_cid`,
+        `cus_name`,
+		`cus_address`,
+		`job_type_id`,
+		`job_type_name`,
+		`cus_recive_name`,
+		`cus_recive_phone`,
+		`cus_recive_mobile`,
+		`cus_addr_lat`,
+		`cus_addr_long`,
+        `cus_addr_sub_district_id`,
+		`cus_addr_sub_district`,
+        `cus_addr_district_id`,
+		`cus_addr_district`,
+        `cus_addr_province_id`,
+		`cus_addr_province`,
+		`cus_addr_sub_post`,
+		`shipping_price`,
+		`shipping_details_docs`,
+		`shipping_details_condition`,
+		`shipping_condition`,
+		`job_start_date`,
+		`create_by`,
+        job_time_preriod,
+        `create_date`,
+        `basket_id`,
+        `basket_name`,
+        `staff_id`,
+        `staff_name`)
+		VALUES
+		(p_company_owner_id,
+        p_company_user_cid,
+        cus_name,
+		cus_address,
+		job_type_id,
+		job_type_name,
+		cus_recive_name,
+		cus_recive_phone,
+		cus_recive_mobile,
+		cus_addr_lat,
+		cus_addr_long,
+        cus_addr_sub_district_id,
+		cus_addr_sub_district,
+        cus_addr_district_id,
+		cus_addr_district,
+        cus_addr_province_id,
+		cus_addr_province,
+		cus_addr_sub_post,
+		shipping_price,
+		shipping_details_docs,
+		shipping_details_condition,
+		shipping_condition,
+		job_start_date,
+		create_by,
+        job_time_preriod,
+        current_timestamp(),
+        p_basket_id,
+        p_basket_name,
+		p_staff_id,
+        p_staff_name);
+        
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`brightdb`@`%` PROCEDURE `stp_job_master_update`(
+IN p_company_user_cid VARCHAR(255),
+IN p_company_owner_id VARCHAR(255),
+IN p_basket_id VARCHAR(255),
+IN p_basket_name VARCHAR(255),
+IN p_staff_id VARCHAR(255),
+IN p_staff_name VARCHAR(255),
+IN p_job_status VARCHAR(255),
+IN p_job_status_name VARCHAR(255)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT "bafore update failed" as msg;
+    END;
+
+    START TRANSACTION;
+        UPDATE `db_bright`.`ms_job_master`
+        SET
+            `basket_id` = p_basket_id,
+            `basket_name` = p_basket_name,
+            `staff_id` = p_staff_id,
+            `staff_name` = p_staff_name,
+            `job_status` = p_job_status,
+            `job_status_name` = p_job_status_name
+        WHERE
+            `company_owner_id` = p_company_owner_id AND `company_user_cid` = p_company_user_cid;
+		
+        IF ROW_COUNT() = 0 THEN
+                ROLLBACK;
+                SELECT "update child failed"  as msg;
+            ELSE
+                COMMIT;
+                SELECT "ok"  as msg;
+            END IF;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_master_basket_ins`(
+IN p_basket_name VARCHAR(255),
+IN p_basket_province_id INT,
+IN p_basket_district_id INT,
+IN p_basket_sub_district_id INT,
+IN p_basket_province VARCHAR(255),
+IN p_basket_district VARCHAR(255),
+IN p_basket_sub_district VARCHAR(255)
+)
+BEGIN
+DECLARE msg VARCHAR(255);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+
+    SELECT COUNT(*) INTO @count FROM `db_bright`.`master_basket`
+    WHERE `basket_name` = p_basket_name;
+
+    IF @count > 0 THEN
+        SET msg = 'name_exist';
+        SELECT msg;
+    ELSE
+        SELECT COUNT(*) INTO @count FROM `db_bright`.`master_basket`
+        WHERE `basket_province_id` = p_basket_province_id 
+            AND `basket_district_id` = p_basket_district_id
+            AND `basket_sub_district_id` = COALESCE(p_basket_sub_district_id, 0);
+
+        IF @count > 0 THEN
+            SET msg = 'record_exists';
+            SELECT msg;
+        ELSE
+            INSERT INTO `db_bright`.`master_basket`
+            (`basket_name`,
+            `basket_province_id`,
+            `basket_district_id`,
+            `basket_sub_district_id`,
+			`basket_province`,
+            `basket_district`,
+            `basket_sub_district`,
+            `created_date`)
+            VALUES
+            (p_basket_name,
+            p_basket_province_id,
+            p_basket_district_id,
+            COALESCE(p_basket_sub_district_id, 0),
+            p_basket_province,
+            p_basket_district,
+            p_basket_sub_district,
+            current_timestamp());
+
+            IF ROW_COUNT() = 1 THEN
+                SET msg = 'ok';
+                SELECT msg;
+                COMMIT;
+            ELSE
+                ROLLBACK;
+            END IF;
+        END IF;
+    END IF;
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_master_basket_staff_ins`(
+    IN p_basket_id INT,
+    IN p_basket_group_id INT,
+    IN p_staff_id VARCHAR(255),
+    IN p_staff_name VARCHAR(255)
+)
+BEGIN
+    DECLARE msg VARCHAR(255);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+
+    IF EXISTS(SELECT 1 FROM `master_basket_staff` WHERE `basket_id` = p_basket_id AND `staff_id` = p_staff_id AND `basket_group_id` = p_basket_group_id) THEN
+        SET msg = 'The record already exists';
+        ROLLBACK;
+    ELSE
+
+        INSERT INTO `master_basket_staff` (`basket_id`, `staff_id`, `staff_name`, `basket_group_id`, `created_date`)
+        VALUES (p_basket_id, p_staff_id, p_staff_name, p_basket_group_id, CURRENT_TIMESTAMP());
+
+        IF ROW_COUNT() = 1 THEN
+            SET msg = 'ok';
+            COMMIT;
+        ELSE
+            SET msg = 'Error inserting the record';
+            ROLLBACK;
+        END IF;
+    END IF;
+
+    SELECT msg;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_master_bucket_update`(
+IN p_id INT,
+IN p_basket_name VARCHAR(255),
+IN p_basket_province_id INT,
+IN p_basket_district_id INT,
+IN p_basket_sub_district_id INT,
+IN p_basket_province VARCHAR(255),
+IN p_basket_district VARCHAR(255),
+IN p_basket_sub_district VARCHAR(255)
+)
+BEGIN
+DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT "bafore update failed" as msg;
+    END;
+
+    START TRANSACTION;
+        UPDATE `db_bright`.`master_basket`
+        SET
+            `basket_name` = p_basket_name,
+            `basket_province_id` = p_basket_province_id,
+            `basket_district_id` = p_basket_district_id,
+            `basket_sub_district_id` = p_basket_sub_district_id,
+            `basket_province` = p_basket_province,
+            `basket_district` = p_basket_district,
+            `basket_sub_district` = p_basket_sub_district,
+            `updated_date` = current_timestamp()
+        WHERE
+            `id` = p_id;
+
+        IF ROW_COUNT() = 0 THEN
+            ROLLBACK;
+            SELECT "update tb1 failed" as msg;
+        ELSE
+			COMMIT;
+			SELECT "ok"  as msg;
+		END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_basket`(
+IN p_basket_province_id INT,
+IN p_basket_district_id INT,
+IN p_basket_sub_district_id INT)
+BEGIN
+	SELECT IFNULL(id, '') AS id, IFNULL(basket_name, '') AS basket_name FROM db_bright.master_basket 
+    WHERE basket_province_id = p_basket_province_id 
+    AND basket_district_id = p_basket_district_id 
+    AND basket_sub_district_id = p_basket_sub_district_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_basket_addr`(
+IN p_company_owner_id VARCHAR(100),
+IN p_company_user_id VARCHAR(100),
+IN p_job_type VARCHAR(100)
+)
+BEGIN
+	IF p_job_type = "วางบิล" THEN
+		SELECT basket_id, basket_name FROM db_bright.tb_companies_addr1
+		WHERE company_owner_id = p_company_owner_id and company_user_id = p_company_user_id;
+        
+	ELSEIF p_job_type = "รับเช็ค" THEN
+		SELECT basket_id, basket_name FROM db_bright.tb_companies_addr1
+		WHERE company_owner_id = p_company_owner_id and company_user_id = p_company_user_id;
+    END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_basket_staff`(IN p_basket_id INT)
+BEGIN
+	SELECT staff_id, staff_name FROM db_bright.master_basket_staff WHERE basket_id = p_basket_id
+    ORDER BY staff_id DESC
+    LIMIT 1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_companies`(
+IN p_start INT,
+IN p_length INT,
+IN p_searchTerm VARCHAR(255)
+)
+BEGIN
+		IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+    
+			SELECT SQL_CALC_FOUND_ROWS *
+			FROM db_bright.tb_companies
+			WHERE (company_name LIKE CONCAT('%', p_searchTerm, '%')
+				 OR company_id LIKE CONCAT('%', p_searchTerm, '%')
+				 OR company_mail LIKE CONCAT('%', p_searchTerm, '%')
+				 )
+			LIMIT p_start, p_length;
+			
+			SELECT FOUND_ROWS() INTO @filtered_records;
+        ELSE
+			 SELECT SQL_CALC_FOUND_ROWS *
+				FROM db_bright.tb_companies
+				LIMIT p_start, p_length;
+			SELECT FOUND_ROWS() INTO @filtered_records;
+        END IF;
+    
+    SELECT FOUND_ROWS() INTO @total_records;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_companies_owner_id`(IN p_company_id varchar(255))
+BEGIN
+	SELECT user_id FROM db_bright.tb_companies
+	WHERE company_id = p_company_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_companies_user`(
+IN p_company_owner_id VARCHAR(255),
+    IN p_start INT,
+    IN p_length INT,
+    IN p_searchTerm VARCHAR(255)
+    )
+BEGIN
+    IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+    
+        SELECT SQL_CALC_FOUND_ROWS 
+        tb1.company_owner_id, 
+        tb1.company_user_cid,
+		tb1.company_user_name, 
+		tb2.company_addr1_name, 
+		tb2.company_addr1_addr, 
+		tb2.company_addr1_condition,
+		tb3.company_addr2_name, 
+		tb3.company_addr2_addr, 
+		tb3.company_addr2_condition
+        FROM db_bright.tb_companies_user AS tb1
+		INNER JOIN db_bright.tb_companies_addr1 AS tb2 ON tb2.company_owner_id = p_company_owner_id AND tb1.company_user_cid = tb2.company_user_id
+		INNER JOIN db_bright.tb_companies_addr2 AS tb3 ON tb3.company_owner_id = p_company_owner_id AND tb1.company_user_cid = tb3.company_user_id
+        WHERE tb1.company_owner_id = p_company_owner_id 
+        AND (tb1.company_user_cid LIKE CONCAT('%', p_searchTerm, '%')
+             OR tb1.company_user_name LIKE CONCAT('%', p_searchTerm, '%'))
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    ELSE
+        SELECT SQL_CALC_FOUND_ROWS 
+        tb1.company_owner_id, 
+        tb1.company_user_cid,
+		tb1.company_user_name, 
+		tb2.company_addr1_name, 
+		tb2.company_addr1_addr, 
+		tb2.company_addr1_condition,
+		tb3.company_addr2_name, 
+		tb3.company_addr2_addr, 
+		tb3.company_addr2_condition
+        FROM db_bright.tb_companies_user AS tb1
+		INNER JOIN db_bright.tb_companies_addr1 AS tb2 ON tb2.company_owner_id = p_company_owner_id AND tb1.company_user_cid = tb2.company_user_id
+		INNER JOIN db_bright.tb_companies_addr2 AS tb3 ON tb3.company_owner_id = p_company_owner_id AND tb1.company_user_cid = tb3.company_user_id
+        WHERE tb1.company_owner_id = p_company_owner_id 
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    END IF;
+    
+    SELECT FOUND_ROWS() INTO @total_records;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_custid`(IN p_custid VARCHAR(50))
+BEGIN
+    SELECT id, company_user_cid, cus_name
+    FROM db_bright.ms_job_master
+    WHERE company_user_cid LIKE CONCAT(p_custid, '%') 
+    LIMIT 5;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_districts_id`(IN keyword VARCHAR(255))
+BEGIN
+    SELECT id, name_in_thai FROM db_bright.districts WHERE name_in_thai LIKE CONCAT('%', keyword, '%') COLLATE utf8_unicode_ci;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_job_master`(
+    IN p_company_owner_id VARCHAR(255),
+    IN p_start INT,
+    IN p_length INT,
+    IN p_searchTerm VARCHAR(255)
+)
+BEGIN
+    IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+        SELECT SQL_CALC_FOUND_ROWS *
+        FROM db_bright.ms_job_master
+        WHERE company_owner_id = p_company_owner_id 
+        AND (company_user_cid LIKE CONCAT('%', p_searchTerm, '%')
+             OR cus_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR job_status_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR job_start_date LIKE CONCAT('%', p_searchTerm, '%'))
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    ELSE
+        SELECT SQL_CALC_FOUND_ROWS *
+        FROM db_bright.ms_job_master
+        WHERE company_owner_id = p_company_owner_id 
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    END IF;
+    
+    SELECT FOUND_ROWS() INTO @total_records;
+    
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`brightdb`@`%` PROCEDURE `stp_search_job_master_all`(
+    IN p_start INT,
+    IN p_length INT,
+    IN p_searchTerm VARCHAR(255)
+)
+BEGIN
+    IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+        SELECT SQL_CALC_FOUND_ROWS j.*, c.company_name
+        FROM db_bright.ms_job_master j
+        INNER JOIN db_bright.tb_companies c ON j.company_owner_id = c.user_id
+        WHERE (j.company_user_cid LIKE CONCAT('%', p_searchTerm, '%')
+			 OR c.company_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR j.cus_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR j.job_status_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR j.job_start_date LIKE CONCAT('%', p_searchTerm, '%'))
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    ELSE
+        SELECT SQL_CALC_FOUND_ROWS j.*, c.company_name
+        FROM db_bright.ms_job_master j
+        INNER JOIN db_bright.tb_companies c ON j.company_owner_id = c.user_id
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    END IF;
+
+    SELECT FOUND_ROWS() INTO @total_records;
+    
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_job_master_by_between_date`(
+    IN p_company_owner_id VARCHAR(255),
+    IN p_start_date VARCHAR(255),
+    IN p_end_date VARCHAR(255),
+    IN p_start INT,
+    IN p_length INT,
+    IN p_searchTerm VARCHAR(255)
+)
+BEGIN
+	SET @start_date = STR_TO_DATE(p_start_date, '%d/%m/%Y');
+    SET @end_date = STR_TO_DATE(p_end_date, '%d/%m/%Y');
+    
+    IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+        SELECT SQL_CALC_FOUND_ROWS *
+        FROM db_bright.ms_job_master
+        WHERE company_owner_id = p_company_owner_id  
+        AND STR_TO_DATE(job_start_date, '%d/%m/%Y') BETWEEN @start_date AND @end_date
+        AND (company_user_cid LIKE CONCAT('%', p_searchTerm, '%')
+             OR cus_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR job_status_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR job_start_date LIKE CONCAT('%', p_searchTerm, '%'))
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    ELSE
+        SELECT SQL_CALC_FOUND_ROWS *
+        FROM db_bright.ms_job_master
+        WHERE company_owner_id = p_company_owner_id  
+        AND STR_TO_DATE(job_start_date, '%d/%m/%Y') BETWEEN @start_date AND @end_date
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    END IF;
+    
+    SELECT FOUND_ROWS() INTO @total_records;
+    
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_job_master_by_date`(
+    IN p_company_owner_id VARCHAR(255),
+    IN p_job_start_date VARCHAR(255),
+    IN p_start INT,
+    IN p_length INT,
+    IN p_searchTerm VARCHAR(255)
+)
+BEGIN
+    IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+        SELECT SQL_CALC_FOUND_ROWS *
+        FROM db_bright.ms_job_master
+        WHERE company_owner_id = p_company_owner_id  AND job_start_date = p_job_start_date
+        AND (company_user_cid LIKE CONCAT('%', p_searchTerm, '%')
+             OR cus_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR job_status_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR job_start_date LIKE CONCAT('%', p_searchTerm, '%'))
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    ELSE
+        SELECT SQL_CALC_FOUND_ROWS *
+        FROM db_bright.ms_job_master
+        WHERE company_owner_id = p_company_owner_id  AND job_start_date = p_job_start_date
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    END IF;
+    
+    SELECT FOUND_ROWS() INTO @total_records;
+    
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`brightdb`@`%` PROCEDURE `stp_search_job_master_by_date_all`(
+    IN p_job_start_date VARCHAR(255),
+    IN p_start INT,
+    IN p_length INT,
+    IN p_searchTerm VARCHAR(255)
+)
+BEGIN
+    IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+        SELECT SQL_CALC_FOUND_ROWS j.*, c.company_name
+        FROM db_bright.ms_job_master j
+        INNER JOIN db_bright.tb_companies c ON j.company_owner_id = c.user_id
+        WHERE j.job_start_date = p_job_start_date
+        AND (j.company_user_cid LIKE CONCAT('%', p_searchTerm, '%')
+			 OR c.company_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR j.cus_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR j.job_status_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR j.job_start_date LIKE CONCAT('%', p_searchTerm, '%'))
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    ELSE
+        SELECT SQL_CALC_FOUND_ROWS j.*, c.company_name
+        FROM db_bright.ms_job_master j
+        INNER JOIN db_bright.tb_companies c ON j.company_owner_id = c.user_id
+        WHERE j.job_start_date = p_job_start_date
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    END IF;
+
+    SELECT FOUND_ROWS() INTO @total_records;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`brightdb`@`%` PROCEDURE `stp_search_job_status_all`()
+BEGIN
+	SELECT * FROM db_bright.ms_job_status;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_master_basket`(
+ IN p_start INT,
+IN p_length INT,
+IN p_searchTerm VARCHAR(255),
+IN p_job_start_date VARCHAR(255)
+)
+BEGIN
+IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+	SELECT SQL_CALC_FOUND_ROWS mb.*, jm.count
+	FROM db_bright.master_basket AS mb
+	LEFT JOIN (
+		SELECT basket_id, basket_name, job_start_date, COUNT(*) AS count
+		FROM db_bright.ms_job_master
+		WHERE basket_id <> '' AND basket_name <> '' AND job_start_date = p_job_start_date
+		GROUP BY basket_id, basket_name, job_start_date
+	) AS jm ON mb.id = jm.basket_id
+    WHERE (mb.basket_name LIKE CONCAT('%', p_searchTerm, '%')
+       OR mb.basket_province LIKE CONCAT('%', p_searchTerm, '%')
+       OR mb.basket_district LIKE CONCAT('%', p_searchTerm, '%')
+	   OR mb.basket_sub_district LIKE CONCAT('%', p_searchTerm, '%'))
+	LIMIT p_start, p_length;
+
+	SELECT FOUND_ROWS() INTO @filtered_records;
+ELSE
+	SELECT SQL_CALC_FOUND_ROWS mb.*, jm.count
+	FROM db_bright.master_basket AS mb
+	LEFT JOIN (
+		SELECT basket_id, basket_name, job_start_date, COUNT(*) AS count
+		FROM db_bright.ms_job_master
+		WHERE basket_id <> '' AND basket_name <> '' AND job_start_date = p_job_start_date
+		GROUP BY basket_id, basket_name, job_start_date
+	) AS jm ON mb.id = jm.basket_id
+	LIMIT p_start, p_length;
+
+	SELECT FOUND_ROWS() INTO @filtered_records;
+END IF;
+	
+SELECT FOUND_ROWS() INTO @total_records;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`brightdb`@`%` PROCEDURE `stp_search_master_basket_all`()
+BEGIN
+	SELECT id,basket_name FROM db_bright.master_basket;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_master_basket_companies`(
+	IN p_company_owner_id INT,
+	IN p_start INT,
+	IN p_length INT,
+	IN p_searchTerm VARCHAR(255)
+)
+BEGIN
+	
+    IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+        SELECT SQL_CALC_FOUND_ROWS *
+			FROM (
+				SELECT tb1.company_owner_id, tb1.company_user_cid, tb1.company_user_name, 
+				tb2.company_addr1_province  as province, tb2.company_addr1_district as district, tb2.company_addr1_subdistrict as subdistrict, tb2.basket_id, tb2.basket_name, "วางบิล" as addr_type
+				FROM db_bright.tb_companies_user as tb1
+				INNER JOIN db_bright.tb_companies_addr1 as tb2 ON tb2.company_owner_id = p_company_owner_id AND tb1.company_user_cid = tb2.company_user_id
+				WHERE tb1.company_owner_id = p_company_owner_id
+				UNION
+				SELECT tb1.company_owner_id, tb1.company_user_cid, tb1.company_user_name,
+				tb3.company_addr2_province as province, tb3.company_addr2_district as district, tb3.company_addr2_subdistrict as subdistrict, tb3.basket_id, tb3.basket_name, "รับเช็ค" as addr_type
+				FROM db_bright.tb_companies_user as tb1
+				INNER JOIN db_bright.tb_companies_addr2 as tb3 ON tb3.company_owner_id = p_company_owner_id AND tb1.company_user_cid = tb3.company_user_id
+				WHERE tb1.company_owner_id = p_company_owner_id
+			) AS combined_data
+			WHERE combined_data.company_user_name LIKE CONCAT('%', p_searchTerm, '%')
+				OR combined_data.company_user_cid LIKE CONCAT('%', p_searchTerm, '%')
+                OR combined_data.addr_type LIKE CONCAT('%', p_searchTerm, '%')
+			LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    ELSE
+        SELECT SQL_CALC_FOUND_ROWS *
+        FROM (
+			SELECT tb1.company_owner_id, tb1.company_user_cid, tb1.company_user_name, 
+			tb2.company_addr1_province  as province, tb2.company_addr1_district as district, tb2.company_addr1_subdistrict as subdistrict, tb2.basket_id, tb2.basket_name, "วางบิล" as addr_type
+			FROM db_bright.tb_companies_user as tb1
+			INNER JOIN db_bright.tb_companies_addr1 as tb2 ON tb2.company_owner_id = p_company_owner_id AND tb1.company_user_cid = tb2.company_user_id
+			WHERE tb1.company_owner_id = p_company_owner_id
+			UNION
+			SELECT tb1.company_owner_id, tb1.company_user_cid, tb1.company_user_name,
+			tb3.company_addr2_province as province, tb3.company_addr2_district as district, tb3.company_addr2_subdistrict as subdistrict, tb3.basket_id, tb3.basket_name, "รับเช็ค" as addr_type
+			FROM db_bright.tb_companies_user as tb1
+			INNER JOIN db_bright.tb_companies_addr2 as tb3 ON tb3.company_owner_id = p_company_owner_id AND tb1.company_user_cid = tb3.company_user_id
+			WHERE tb1.company_owner_id = p_company_owner_id
+        ) AS combined_data
+        LIMIT p_start, p_length;
+
+        SELECT FOUND_ROWS() INTO @filtered_records;
+    END IF;
+
+    SELECT FOUND_ROWS() INTO @total_records;
+    
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_master_basket_id`(
+ IN p_id INT
+)
+BEGIN
+	SELECT * FROM db_bright.master_basket
+	WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_master_basket_staff_id`(IN p_basket_id INT, IN p_basket_group_id INT)
+BEGIN
+	SELECT staff_id, staff_name FROM db_bright.master_basket_staff WHERE basket_id = p_basket_id AND basket_group_id = p_basket_group_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_province_id`(IN keyword VARCHAR(255))
+BEGIN
+    SELECT id, name_in_thai FROM db_bright.provinces WHERE name_in_thai LIKE CONCAT('%', keyword, '%') COLLATE utf8_unicode_ci;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_staff_all`(
+IN p_start INT,
+IN p_length INT,
+IN p_searchTerm VARCHAR(255)
+)
+BEGIN
+	IF p_searchTerm IS NOT NULL AND p_searchTerm != '' THEN
+    
+        SELECT SQL_CALC_FOUND_ROWS *
+        FROM db_bright.tb_staff
+        WHERE (staff_id LIKE CONCAT('%', p_searchTerm, '%')
+             OR staff_name LIKE CONCAT('%', p_searchTerm, '%')
+             OR staff_dept_name LIKE CONCAT('%', p_searchTerm, '%')
+             )
+        LIMIT p_start, p_length;
+        
+        SELECT FOUND_ROWS() INTO @filtered_records;
+        ELSE
+			SELECT SQL_CALC_FOUND_ROWS *
+			FROM db_bright.tb_staff
+			LIMIT p_start, p_length;
+			
+			SELECT FOUND_ROWS() INTO @filtered_records;
+        END IF;
+        
+    SELECT FOUND_ROWS() INTO @total_records;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_staff_mas`(IN p_basket_id INT, IN p_basket_group_id INT)
+BEGIN
+	DECLARE staff_count INT;
+	
+	SELECT COUNT(*) INTO staff_count FROM db_bright.master_basket_staff WHERE basket_id = p_basket_id AND basket_group_id = p_basket_group_id;
+	
+	IF staff_count > 0 THEN
+		SELECT * FROM db_bright.tb_staff
+		WHERE staff_dept_id = 1
+		AND id NOT IN (SELECT staff_id FROM db_bright.master_basket_staff WHERE basket_id = p_basket_id AND basket_group_id = p_basket_group_id);
+	ELSE
+		SELECT * FROM db_bright.tb_staff
+		WHERE staff_dept_id = 1;
+	END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_search_subdistrictsid`(IN keyword VARCHAR(255))
+BEGIN
+    SELECT id, name_in_thai, zip_code FROM db_bright.subdistricts WHERE name_in_thai LIKE CONCAT('%', keyword, '%') COLLATE utf8_unicode_ci;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_update_basket_companies`(
+IN p_company_owner_id VARCHAR(255),
+IN p_company_user_id VARCHAR(255),
+IN p_basket_id VARCHAR(255),
+IN p_basket_name VARCHAR(255),
+IN p_addr_type VARCHAR(255)
+)
+BEGIN
+DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT "bafore update failed" as msg;
+    END;
+
+    START TRANSACTION;
+    
+    IF p_addr_type = "วางบิล" THEN
+        UPDATE `db_bright`.`tb_companies_addr1`
+        SET
+            `company_owner_id` = p_company_owner_id,
+            `company_user_id` = p_company_user_id,
+            `basket_id` = p_basket_id,
+            `basket_name` = p_basket_name,
+            `updated_at` = current_timestamp()
+        WHERE
+            `company_owner_id` = p_company_owner_id AND
+            `company_user_id` = p_company_user_id;
+		IF ROW_COUNT() = 0 THEN
+            ROLLBACK;
+            SELECT "update tb1 failed" as msg;
+        ELSE
+			COMMIT;
+			SELECT "ok"  as msg;
+		END IF;
+	ELSEIF p_addr_type = "รับเช็ค" THEN    
+		UPDATE `db_bright`.`tb_companies_addr2`
+        SET
+            `company_owner_id` = p_company_owner_id,
+            `company_user_id` = p_company_user_id,
+            `basket_id` = p_basket_id,
+            `basket_name` = p_basket_name,
+            `updated_at` = current_timestamp()
+        WHERE
+            `company_owner_id` = p_company_owner_id AND
+            `company_user_id` = p_company_user_id;
+
+        IF ROW_COUNT() = 0 THEN
+            ROLLBACK;
+            SELECT "update tb1 failed" as msg;
+        ELSE
+			COMMIT;
+			SELECT "ok"  as msg;
+		END IF;
+	END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `stp_update_job_status`(
+    IN p_company_owner_id VARCHAR(255),
+    IN p_company_user_cid VARCHAR(255),
+    IN p_job_status INT,
+    IN p_job_status_name VARCHAR(255)
+)
+BEGIN
+	DECLARE msg VARCHAR(255);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+
+    UPDATE `db_bright`.`ms_job_master`
+    SET
+        job_status = p_job_status,
+        job_status_name = p_job_status_name,
+        updated_by = p_company_owner_id
+    WHERE company_owner_id = p_company_owner_id
+        AND company_user_cid = p_company_user_cid;
+
+    IF ROW_COUNT() = 1 THEN
+        SET msg = 'ok';
+        COMMIT;
+        SELECT msg;
+    ELSE
+        ROLLBACK;
+        SET msg = 'Error: No rows updated.';
+        SELECT msg;
+    END IF;
+END$$
+DELIMITER ;
