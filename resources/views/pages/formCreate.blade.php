@@ -70,21 +70,19 @@ Home - @parent
 								<div class="col-md-12">
 									<div class="panel border-green-800">
 										<div class="panel-heading bg-green-800">
-											<h6 class="panel-title">Create Form<a class="heading-elements-toggle"><i class="icon-more"></i></a></h6>
-											<div class="heading-elements">
-												<ul class="icons-list">
-													<li><a data-action="collapse"></a></li>
-													<li><a data-action="reload"></a></li>
-													<li><a data-action="close"></a></li>
-												</ul>
+											<div class="fhead">
+
+
+
 											</div>
+											
 										</div>
 										<div class="panel-body">
 											<form class="form-horizontal" action="#">
 												<fieldset class="content-group">
-													<legend class="text-bold">Form Information 1</legend>
 													<div class="fbody">
 
+														<legend class="text-bold"></legend>
 													
 
 													</div>
@@ -216,15 +214,26 @@ Home - @parent
 				<!-- /content area -->
 
 <script>
+	$('.theader').on('click', function() {
+		string = '<h5 class="panel-title">Create Form Information<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>'+
+					'<div class="heading-elements">'+
+					'<ul class="icons-list">'+
+					'<li><a data-action="collapse"></a></li>'+
+					'<li><a data-action="reload"></a></li>'+
+					'<li><a data-action="close"></a></li></ul></div>';
+		$('.fhead').append(string);
+	});
 
 	$('.tsheader').on('click', function() {
-		alert("Sub Header");
+		string = '<p class="content-group">Example of simple <code>google map</code> with default options and center in Budapest, Hungary. Zoom and center of the map is defined in chart settings. Google API loads using default synchronous method when the page renders after the script is loaded. Asynchronous method is optional and available for usage. Google Maps uses a close variant of the <code>Mercator projection</code>, and therefore cannot accurately show areas around the poles.</p>';
+		$('.fbody').append(string);
 	});
 
 	$('.tbox').on('click', function() {
 		var string = '<div class="form-group"><label class="control-label col-lg-2">Default text input</label><div class="col-lg-10"><div class="input-group"><input type="text" class="form-control"><span class="input-group-btn"><button type="button" class="btn bg-danger delete-button"> X </button></span></div></div></div>';
 		$('.fbody').append(string);
 	});
+
 	$('.tarea').on('click', function() {
 		var string = '<div class="form-group">'+
 					 '<label class="control-label col-lg-2">Text Area</label>'+
@@ -236,6 +245,7 @@ Home - @parent
 					 '</span></div></div></div>';
 		$('.fbody').append(string);
 	});
+	
 	$('.fbody').on('click', '.delete-button', function() {
 		$(this).closest('.form-group').remove();
 	});
