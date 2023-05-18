@@ -111,8 +111,8 @@ Home - @parent
 										</div>
 										<div class="category-content no-padding">
 												<ul class="navigation navigation-alt navigation-accordion">
-													<li><a class="theader"><i class="icon-typography"></i> Header </a></li>
-													<li><a class="tsheader"><i class="icon-font-size"></i> Sub-Header </a></li>
+													<li><a data-toggle="modal" data-target="#modal_text_header"><i class="icon-typography"></i> Header </a></li>
+													<li><a data-toggle="modal" data-target="#modal_text_sheader"><i class="icon-font-size"></i> Sub-Header </a></li>
 												</ul>
 										</div>
 									</div>
@@ -213,24 +213,83 @@ Home - @parent
 				</div>
 				<!-- /content area -->
 
+				<!-- Modal -->
+				<!-- Header modal -->
+				<div id="modal_text_header" class="modal fade">
+						<div class="modal-dialog">
+							<div class="modal-content text-center">
+
+								<form action="#" class="form-inline">
+									<div class="modal-body">
+										<div class="form-group has-feedback">
+											<label>Text Header : </label>
+											<input type="text" id="txtheader" placeholder="Your text header" class="form-control">
+										</div>
+									</div>
+
+									<div class="modal-footer text-center">
+										<button type="button" class="btn btn-primary btn_theader" data-dismiss="modal">Add to form <i class="icon-plus22"></i></button>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+					<!-- /Header modal -->
+
+				<!-- subHeader modal -->
+				<div id="modal_text_sheader" class="modal fade">
+						<div class="modal-dialog">
+							<div class="modal-content text-center">
+
+								<form action="#" class="form-inline">
+									<div class="modal-body">
+										<div class="form-group has-feedback">
+											<label>Text Sub Header : </label>
+											<input type="text" id="txtsheader" placeholder="Your sub text header" class="form-control">
+										</div>
+									</div>
+
+									<div class="modal-footer text-center">
+										<button type="button" class="btn btn-primary btn_tsheader" data-dismiss="modal">Add to form <i class="icon-plus22"></i></button>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+					<!-- /subHeader modal -->
+				<!-- /Modal -->
+
 <script>
-	$('.theader').on('click', function() {
-		string = '<h5 class="panel-title">Create Form Information<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>'+
+	$('.btn_theader').on('click', function() {
+		textheader = $('#txtheader').val();
+		string = '<div class="form-group">'+ 
+		'<h5 class="panel-title">'+textheader+'</h5>'+
 					'<div class="heading-elements">'+
 					'<ul class="icons-list">'+
 					'<li><a data-action="collapse"></a></li>'+
 					'<li><a data-action="reload"></a></li>'+
-					'<li><a data-action="close"></a></li></ul></div>';
+					'<li><a data-action="close"></a></li></ul></div>'+
+					'<span class="input-group-btn">'+
+					 '<button type="button" class="btn bg-danger delete-button"> X </button>'+
+					 '</span></div></div></div>'+
+					 '</div>';
 		$('.fhead').append(string);
 	});
 
-	$('.tsheader').on('click', function() {
-		string = '<p class="content-group">Example of simple <code>google map</code> with default options and center in Budapest, Hungary. Zoom and center of the map is defined in chart settings. Google API loads using default synchronous method when the page renders after the script is loaded. Asynchronous method is optional and available for usage. Google Maps uses a close variant of the <code>Mercator projection</code>, and therefore cannot accurately show areas around the poles.</p>';
+	$('.btn_tsheader').on('click', function() {
+		textsheader = $('#txtsheader').val();
+		string = '<p class="content-group">'+textsheader+'.</p>'+
+		'<span class="input-group-btn">'+
+					 '<button type="button" class="btn bg-danger delete-button"> X </button>'+
+					 '</span></div></div></div>';
 		$('.fbody').append(string);
 	});
 
 	$('.tbox').on('click', function() {
-		var string = '<div class="form-group"><label class="control-label col-lg-2">Default text input</label><div class="col-lg-10"><div class="input-group"><input type="text" class="form-control"><span class="input-group-btn"><button type="button" class="btn bg-danger delete-button"> X </button></span></div></div></div>';
+		var string = '<div class="form-group">'+
+		'<label class="control-label col-lg-2">Default text input</label>'+
+		'<div class="col-lg-10"><div class="input-group">'+
+		'<input type="text" class="form-control"><span class="input-group-btn"><button type="button" class="btn bg-danger delete-button"> X </button></span></div></div></div>';
 		$('.fbody').append(string);
 	});
 
@@ -246,6 +305,11 @@ Home - @parent
 		$('.fbody').append(string);
 	});
 	
+	$('.fhead').on('click', '.delete-button', function() {
+		console.log('click');
+		$(this).closest('.form-group').remove();
+	});
+
 	$('.fbody').on('click', '.delete-button', function() {
 		$(this).closest('.form-group').remove();
 	});
